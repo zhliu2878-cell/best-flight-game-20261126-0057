@@ -32,8 +32,13 @@ function main(): void {
   if (!existsSync(shotsSrc)) throw new Error(`screenshots/ not found beside main.ts: ${shotsSrc}`);
 
   // Fresh output: clear any previous hand-in so stale files never ship.
-  rmSync(outDir, { recursive: true, force: true });
+  // Clear the directory's contents, never the directory itself: in the
+  // grader /output is a mounted volume, and removing the mount point
+  // itself fails with EBUSY ("Device or resource busy").
   mkdirSync(outDir, { recursive: true });
+  for (const entry of readdirSync(outDir)) {
+    rmSync(join(outDir, entry), { recursive: true, force: true });
+  }
 
   // Copy the game and its screenshots into the output directory.
   cpSync(gameSrc, join(outDir, 'game'), { recursive: true });
